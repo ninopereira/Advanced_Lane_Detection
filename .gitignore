@@ -1,0 +1,6 @@
+other_resources/
+.gitignore~
+data/
+test_images/
+camera_cal/
+*.mp4
