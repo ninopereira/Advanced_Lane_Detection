@@ -5,7 +5,7 @@
 # 
 # Here we have a collection of usefull functions to do image transformation
 
-# In[10]:
+# In[1]:
 
 get_ipython().magic('matplotlib inline')
 import numpy as np
@@ -15,7 +15,7 @@ import matplotlib.image as mpimg
 import math
 
 
-# In[11]:
+# In[2]:
 
 #display images side by side
 def plotImageSet(image_list,color='gnuplot2'):
@@ -29,8 +29,18 @@ def plotImageSet(image_list,color='gnuplot2'):
     plt.show()
 
 
-# In[12]:
+# In[3]:
 
+# enum InterpolationFlags { 
+#     INTER_NEAREST = 0, 
+#     INTER_LINEAR = 1, 
+#     INTER_CUBIC = 2, 
+#     INTER_AREA = 3, 
+#     INTER_LANCZOS4 = 4, 
+#     INTER_MAX = 7, 
+#     WARP_FILL_OUTLIERS = 8, 
+#     WARP_INVERSE_MAP = 16 
+# }
 def warp(img, src, dst, back=0):
     img_size = (img.shape[1], img.shape[0])
     
@@ -40,9 +50,11 @@ def warp(img, src, dst, back=0):
     
     if back:
         print('warping back')
-        warped = cv2.warpPerspective(img, M_inv, img_size, flags=cv2.INTER_LINEAR)
+        #warped = cv2.warpPerspective(img, M_inv, img_size, flags=cv2.INTER_LINEAR) #CV_WARP_FILL_OUTLIERS
+        warped = cv2.warpPerspective(img, M_inv, img_size, flags=cv2.INTER_NEAREST)#INTER_MAX INTER_NEAREST #CV_WARP_FILL_OUTLIERS
     else:
-        warped = cv2.warpPerspective(img, M, img_size, flags=cv2.INTER_LINEAR)
+        #warped = cv2.warpPerspective(img, M, img_size, flags=cv2.INTER_LINEAR)
+        warped = cv2.warpPerspective(img, M, img_size, flags=cv2.INTER_NEAREST)
     return warped
 
 
