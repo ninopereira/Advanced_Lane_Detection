@@ -6,3 +6,4 @@ camera_cal/
 *.mp4
 __pycache__/
 .ipynb_checkpoints/*
+processed_images/

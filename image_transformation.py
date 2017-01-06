@@ -19,14 +19,21 @@ import math
 
 #display images side by side
 def plotImageSet(image_list,color='gnuplot2'):
-    fig = plt.figure()
-    count = 1
-    for image in image_list:
-        ax = fig.add_subplot(1,len(image_list),count)
-        imgplot = plt.imshow(image,cmap=color)
-        ax.axis('off')
-        count = count +1
-    plt.show()
+    fig = plt.figure();
+    fig, ax = plt.subplots(1, len(image_list), figsize=(24, 9));
+    fig.tight_layout();
+    count = 0
+    if (len(image_list)>1):
+        for image in image_list:
+            ax[count].imshow(image,cmap=color);
+            ax[count].axis('off');
+            count = count +1
+    else:
+        ax.imshow(image_list[0],cmap=color);
+        ax.axis('off');
+    
+    plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.);
+    plt.show();
 
 
 # In[3]:
