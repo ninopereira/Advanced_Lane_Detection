@@ -1,23 +1,22 @@
 
 # coding: utf-8
 
-# This notebook contains imported code from project 1.
+# # Image transformation functions
 # 
 # Here we have a collection of usefull functions to do image transformation
 
 # In[1]:
 
-get_ipython().magic('matplotlib inline')
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import math
+import matplotlib.pyplot as plt
 
 
-# In[2]:
+# In[9]:
 
-#display images side by side
+# display a set of images side by side
 def plotImageSet(image_list,color='gnuplot2'):
     fig = plt.figure();
     fig, ax = plt.subplots(1, len(image_list), figsize=(24, 9));
@@ -36,37 +35,9 @@ def plotImageSet(image_list,color='gnuplot2'):
     plt.show();
 
 
-# In[3]:
+# In[10]:
 
-# enum InterpolationFlags { 
-#     INTER_NEAREST = 0, 
-#     INTER_LINEAR = 1, 
-#     INTER_CUBIC = 2, 
-#     INTER_AREA = 3, 
-#     INTER_LANCZOS4 = 4, 
-#     INTER_MAX = 7, 
-#     WARP_FILL_OUTLIERS = 8, 
-#     WARP_INVERSE_MAP = 16 
-# }
-def warp(img, src, dst, back=0):
-    img_size = (img.shape[1], img.shape[0])
-    
-    # compute the perspective transform M
-    M = cv2.getPerspectiveTransform(src,dst)
-    M_inv = cv2.getPerspectiveTransform(dst,src)
-    
-    if back:
-        print('warping back')
-        #warped = cv2.warpPerspective(img, M_inv, img_size, flags=cv2.INTER_LINEAR) #CV_WARP_FILL_OUTLIERS
-        warped = cv2.warpPerspective(img, M_inv, img_size, flags=cv2.INTER_NEAREST)#INTER_MAX INTER_NEAREST #CV_WARP_FILL_OUTLIERS
-    else:
-        #warped = cv2.warpPerspective(img, M, img_size, flags=cv2.INTER_LINEAR)
-        warped = cv2.warpPerspective(img, M, img_size, flags=cv2.INTER_NEAREST)
-    return warped
-
-
-# In[13]:
-
+# returns the slope of a line
 def get_slope(line):
     x1 = line[0][0]
     y1 = line[0][1]
@@ -78,11 +49,20 @@ def get_slope(line):
         slope=999
     return slope
 
+
+# In[11]:
+
+# add a point (x_1,y_1) to the intersections list if inside of the rectangle defined
+# by the boundaries lower_x,upper_x,lower_y,upper_y
 def add_if_within_boundaries(intersections,x_1,y_1,lower_x,upper_x,lower_y,upper_y):
     if ((x_1>=lower_x and x_1<=upper_x) and (y_1>=lower_y and y_1<=upper_y)):
         intersections.append((x_1,y_1))
     return intersections
-    
+
+
+# In[12]:
+
+# extends a line until it touches the boundaries, keeping the same slope
 def extend_line(line, lower_x,upper_x,lower_y,upper_y):
     # todo: verify line is a proper line (e.g. not two equal points)
     intersections = list()
@@ -144,23 +124,67 @@ def extend_line(line, lower_x,upper_x,lower_y,upper_y):
     return {'line':extended_line,'slope':slope}
 
 
+# In[13]:
+
+# warps and image given src and dst points
+
+# enum InterpolationFlags { 
+#     INTER_NEAREST = 0, 
+#     INTER_LINEAR = 1, 
+#     INTER_CUBIC = 2, 
+#     INTER_AREA = 3, 
+#     INTER_LANCZOS4 = 4, 
+#     INTER_MAX = 7, 
+#     WARP_FILL_OUTLIERS = 8, 
+#     WARP_INVERSE_MAP = 16 
+# }
+def warp(img, src, dst, back=0):
+    img_size = (img.shape[1], img.shape[0])
+    
+    # compute the perspective transform M
+    M = cv2.getPerspectiveTransform(src,dst)
+    M_inv = cv2.getPerspectiveTransform(dst,src)
+    
+    if back:
+        print('warping back')
+        #warped = cv2.warpPerspective(img, M_inv, img_size, flags=cv2.INTER_LINEAR) #CV_WARP_FILL_OUTLIERS
+        warped = cv2.warpPerspective(img, M_inv, img_size, flags=cv2.INTER_NEAREST)#INTER_MAX INTER_NEAREST #CV_WARP_FILL_OUTLIERS
+    else:
+        #warped = cv2.warpPerspective(img, M, img_size, flags=cv2.INTER_LINEAR)
+        warped = cv2.warpPerspective(img, M, img_size, flags=cv2.INTER_NEAREST)
+    return warped
+
+
 # In[14]:
 
+# converts an image to grayscale
 def grayscale(img):
     """Applies the Grayscale transform
     This will return an image with only one color channel
     but NOTE: to see the returned image as grayscale
     you should call plt.imshow(gray, cmap='gray')"""
     return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    
+
+
+# In[15]:
+
+# aplly canny filter to image
 def canny(img, low_threshold, high_threshold):
     """Applies the Canny transform"""
     return cv2.Canny(img, low_threshold, high_threshold)
 
+
+# In[16]:
+
+# apply gaussian blur
 def gaussian_blur(img, kernel_size):
     """Applies a Gaussian Noise kernel"""
     return cv2.GaussianBlur(img, (kernel_size, kernel_size), 0)
 
+
+# In[17]:
+
+# crop image to a given region of interes defined by the vertices
 def region_of_interest(img, vertices):
     """
     Applies an image mask.
@@ -186,6 +210,9 @@ def region_of_interest(img, vertices):
     return masked_image
 
 
+# In[18]:
+
+# draws a set of lines in the image
 def draw_lines(img, lines, color=[255, 0, 0], thickness=2):
     """
     NOTE: this is the function you might want to use as a starting point once you want to 
@@ -207,6 +234,10 @@ def draw_lines(img, lines, color=[255, 0, 0], thickness=2):
         for x1,y1,x2,y2 in line:
             cv2.line(img, (x1, y1), (x2, y2), color, thickness)
 
+
+# In[19]:
+
+# computes hough lines from the image
 def hough_lines(img, rho, theta, threshold, min_line_len, max_line_gap):
     """
     `img` should be the output of a Canny transform.
@@ -296,19 +327,118 @@ def hough_lines(img, rho, theta, threshold, min_line_len, max_line_gap):
     
     return line_img
 
-# Python 3 has support for cool math symbols.
 
+# In[27]:
+
+# returns a weighted image between the two given images 
 def weighted_img(img, initial_img, α=0.8, β=1., λ=0.):
     """
-    `img` is the output of the hough_lines(), An image with lines drawn on it.
-    Should be a blank image (all black) with lines drawn on it.
-    
-    `initial_img` should be the image before any processing.
-    
     The result image is computed as follows:
     
     initial_img * α + img * β + λ
     NOTE: initial_img and img must be the same shape!
     """
     return cv2.addWeighted(initial_img, α, img, β, λ)
+
+
+# In[28]:
+
+# computes the magnitude of sobel given a threshold
+def mag_thresh(img, sobel_kernel=3, mag_thresh=(0, 255)):
+    # Apply the following steps to img
+    # 1) Convert to grayscale
+    gray_im = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    # 2) Take the gradient in x and y separately
+    sobelx = cv2.Sobel(gray_im, cv2.CV_64F, 1, 0,ksize=sobel_kernel)
+    sobely = cv2.Sobel(gray_im, cv2.CV_64F, 0, 1,ksize=sobel_kernel)   
+    # 3) Calculate the magnitude 
+    sobel_mag = np.sqrt((sobelx**2)+(sobely**2))
+    # 5) Scale to 8-bit (0 - 255) and convert to type = np.uint8
+    scaled_sobel = np.uint8(255*sobel_mag/np.max(sobel_mag))
+    # 6) Create a binary mask where mag thresholds are met
+    binary_output = np.zeros_like(scaled_sobel)
+    binary_output[(scaled_sobel >= mag_thresh[0]) & (scaled_sobel <= mag_thresh[1])] = 1
+    # 7) Return this mask as your binary_output image
+    return binary_output
+
+
+# In[29]:
+
+# Define a function that applies Sobel x and y, 
+# then computes the direction of the gradient
+# and applies a threshold.
+def dir_threshold(img, sobel_kernel=3, thresh=(0, np.pi/2)):
+    # Apply the following steps to img
+    # 1) Convert to grayscale
+    gray_im = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    # 2) Take the gradient in x and y separately
+    sobelx = cv2.Sobel(gray_im, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
+    sobely = cv2.Sobel(gray_im, cv2.CV_64F, 0, 1, ksize=sobel_kernel)  
+    # 3) Take the absolute value of the x and y gradients
+    abs_sobelx = np.absolute(sobelx)
+    abs_sobely = np.absolute(sobely)
+    # 4) Use np.arctan2(abs_sobely, abs_sobelx) to calculate the direction of the gradient 
+    gradient_dir = np.arctan2(abs_sobely, abs_sobelx)
+    
+    # 5) Create a binary mask where direction thresholds are met
+    binary_output = np.zeros_like(gradient_dir)
+    binary_output[(gradient_dir > thresh[0]) & (gradient_dir < thresh[1])] = 1
+    # 6) Return this mask as your binary_output image
+    return binary_output
+
+
+# In[30]:
+
+# computes the abosulte sobel transform
+def abs_sobel_thresh(img, orient='x', sobel_kernel=3, thresh=(0, 255)):
+    # Grayscale
+    #1 convert to gray
+    gray_im = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    # Apply cv2.Sobel()
+    if orient=='x':
+        sobel = cv2.Sobel(gray_im, cv2.CV_64F, 1, 0)
+    else:
+        sobel = cv2.Sobel(gray_im, cv2.CV_64F, 0, 1)   
+    # Take the absolute value of the output from cv2.Sobel()
+    abs_sobel = np.absolute(sobel)
+    # Scale the result to an 8-bit range (0-255)
+    scaled_sobel = np.uint8(255*abs_sobel/np.max(abs_sobel))
+    # Apply lower and upper thresholds
+    # Create binary_output
+    binary_output = np.zeros_like(scaled_sobel)
+    binary_output[(scaled_sobel >= thresh[0]) & (scaled_sobel <= thresh[1])] = 1
+    return binary_output
+
+
+# In[1]:
+
+# returns the histogram of a single channel given a threshold
+def get_histogram (img_channel,threshold):
+    hist = []
+    x = []
+    height, width = img_channel.shape
+    for i in range(width):
+        count = 0
+        for j in range(height):
+            if img_channel[j,i]>threshold:
+                count = count + 1
+        hist.append(count)
+        x.append(i)
+    return x,hist
+
+
+# In[2]:
+
+# get the peak of the histogram for a given image channel and given a threshold
+def get_peak(img_channel,threshold):
+    # use that region to search for the line in the next section of the image
+    x,y = get_histogram(img_channel,threshold)
+    # find peaks
+    peak_x = y.index(max(y)) #get the x coordinate for the peak on the left
+    return peak_x
+
+
+# In[ ]:
+
+
 
