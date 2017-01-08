@@ -25,7 +25,15 @@
 # 8. Once you have implemented a successful pipeline on the test images, you will run your algorithm on a video. In the case of the video, you must search for the lane lines in the first few frames, and, once you have a high-confidence detection, use that information to track the position and curvature of the lines from frame to frame.
 # 9. Check out the project rubric before you submit to make sure your project is complete!.
 
-# In[106]:
+# In[ ]:
+
+# Import everything needed to edit/save/watch video clips
+
+from IPython.display import HTML
+from moviepy.editor import VideoFileClip
+
+
+# In[1]:
 
 # import libs
 get_ipython().magic('matplotlib inline')
@@ -35,6 +43,8 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import os
 import copy
+
+
 
 # import functions from other files
 from camera_calibration import calibrate_camera
@@ -47,7 +57,7 @@ from image_transformation import weighted_img
 
 # # Helper functions
 
-# In[107]:
+# In[2]:
 
 # warp a lane shape from the perspective to the orthogonal view
 # in fact we want to use it to do the inverse transformation
@@ -76,7 +86,7 @@ def warp_lane(img,direction=0):
     return warped_img
 
 
-# In[108]:
+# In[3]:
 
 # check and draw warping area of the image
 def draw_wrap_area(img):
@@ -93,7 +103,7 @@ def draw_wrap_area(img):
     return img_wrap_area
 
 
-# In[109]:
+# In[37]:
 
 # get list of pixels (x,y coord) for each line:
 def get_pixel_lists(im, left_color, right_color):
@@ -103,7 +113,6 @@ def get_pixel_lists(im, left_color, right_color):
     right_line_x = []
     right_line_y = []
 
-    print(im.shape)
     height,width,channels = im.shape
     for i in range(height):
          for j in range(width):   
@@ -124,7 +133,7 @@ def get_pixel_lists(im, left_color, right_color):
     return left_line_x,left_line_y,right_line_x,right_line_y
 
 
-# In[110]:
+# In[38]:
 
 # fit a 2nd order polynomial to the x and y values
 def fit_polynom(x_values, y_values):
@@ -133,7 +142,7 @@ def fit_polynom(x_values, y_values):
     return pol_fitx,pol_fit
 
 
-# In[111]:
+# In[39]:
 
 # retrieves the curvature radius (in meters) from the set of points
 def get_curvature_radius(x_values,y_values):
@@ -147,7 +156,7 @@ def get_curvature_radius(x_values,y_values):
     return curverad
 
 
-# In[112]:
+# In[40]:
 
 # 6. Warp the detected lane boundaries back onto the original image.
 # computes the output value given the input value and the 2nd order function (coeficients)
@@ -180,7 +189,7 @@ def get_out_value(input, function):
 #     warped_poly = warp_lane(image_poly,direction=1)
 #     return warped_poly
 
-# In[113]:
+# In[41]:
 
 # draw the lane given the edge points of the function
 def draw_lane(img,left_fit,right_fit,start_y=0,end_y=0):
@@ -204,7 +213,7 @@ def draw_lane(img,left_fit,right_fit,start_y=0,end_y=0):
     return img
 
 
-# In[114]:
+# In[42]:
 
 # 4. Detect lane pixels in birds-eye image
 # note img_channel should have values ranging from 0 to 255
@@ -287,7 +296,7 @@ def identify_lines(img_channel, left_color, right_color, debug=0):
     return im
 
 
-# In[115]:
+# In[43]:
 
 def draw_line(img,fit_func,color=(255,255,255), thickness=24):
     height, width, channels = img.shape
@@ -304,7 +313,7 @@ def draw_line(img,fit_func,color=(255,255,255), thickness=24):
     return img
 
 
-# In[116]:
+# In[44]:
 
 def plot_fit_lines(left_line_x, left_line_y, right_line_x, right_line_y, left_fitx, right_fitx):
     plt.plot(left_line_x, left_line_y, 'o', color='red')
@@ -318,7 +327,7 @@ def plot_fit_lines(left_line_x, left_line_y, right_line_x, right_line_y, left_fi
 
 # # Camera Calibration
 
-# In[117]:
+# In[12]:
 
 # 0. Calibrate the camera using the calibration images
 nx = 9 # number of inside corners in x
@@ -334,7 +343,7 @@ mtx,dist = calibrate_camera('camera_cal/calibration*.jpg',nx, ny)
 # undistorted_im = cv2.undistort(img, mtx, dist, None, mtx)
 # plotImageSet([img,undistorted_im]);
 
-# In[118]:
+# In[13]:
 
 # 2. Use color transforms, gradients, etc., to create a thresholded binary image.
 
@@ -350,12 +359,11 @@ mtx,dist = calibrate_camera('camera_cal/calibration*.jpg',nx, ny)
 # dir_binary = dir_threshold(undistorted_im, sobel_kernel=15, thresh=(0.93, 1.04))
 # plotImageSet([undistorted_im,dir_binary])
 
-# In[128]:
+# In[48]:
 
+# apply sobel and channel filters to enhance white and yellow lines detection
 
-# Pipeline.
-# def pipeline(img, s_thresh=(170, 255), sx_thresh=(20, 100), r_thresh=(20, 100), h_thresh=(20, 100)):
-def pipeline(img, h_thresh=(20,22), s_thresh=(200, 254), sx_thresh=(40, 100),r_thresh=(220, 255)):
+def filter_img(img, debug =0, h_thresh=(20,22), s_thresh=(200, 254), sx_thresh=(40, 100),r_thresh=(220, 255)):
     
     img = np.copy(img)
     r_channel = img[:,:,0]
@@ -391,57 +399,35 @@ def pipeline(img, h_thresh=(20,22), s_thresh=(200, 254), sx_thresh=(40, 100),r_t
     
     filtered_channel = np.zeros_like(r_channel)
     filtered_channel[(sxbinary >= 0.5) | (s_binary >= 0.5) | (h_binary>= 0.5) | (r_binary>= 0.5)] = 255
-    # Stack each channel
-    
-#     color_binary = np.dstack(( h_binary, sxbinary, s_binary))
-    
-    # debug
+
     # h_binary captures yellow lines very well
     # sxbinary captures white lines
     # s_binary captures white and yellow lines     
-    plotImageSet([img,h_binary,sxbinary,s_binary,r_binary,filtered_channel])
-#     plotImageSet([img,img_lines])
+    if debug:
+        plotImageSet([img,h_binary,sxbinary,s_binary,r_binary,filtered_channel])
     
-    #return color_binary
     return filtered_channel
 
 
-# In[142]:
+# In[49]:
 
-# get images list
-images = os.listdir("test_images/")
-
-# images = ["solidYellowLeft.jpg",]
-# images = ["test1.jpg"]
-
-
-# In[144]:
-
-# process all images in the list
-for afile in images:
-    # get one image from the list
-    filename = 'test_images/'+afile
-    img = mpimg.imread(filename)
-    
+def process_image(img, debug = 0):
     # undistort the image
     undistorted_im = cv2.undistort(img, mtx, dist, None, mtx)
     
     #filter the image
-    filtered_channel = pipeline(undistorted_im)
-#     plotImageSet([undistorted_im,filtered_channel])
-    
+    filtered_channel = filter_img(undistorted_im)
+
     # aplly mask to the region of interest
     # apply 1st mask to select region of interest
     height, width, channels = img.shape
     vertices = np.array([[(0,height),(width*0.45,0.55*height),(width*0.55, 0.55*height), (width, height)]], dtype=np.int32);
     masked_channel = region_of_interest(filtered_channel, vertices);
-    # plotImageSet([undistorted_im,masked_channel])
 
     # warp the image to 'orthogonal bird-eyes view'
     warped_channel = warp_lane(masked_channel)
     wrap_area = draw_wrap_area(undistorted_im) # just for debug
     
-#     plotImageSet([warped_channel,])
     # identify lines in image
     left_color = (255,50,50)
     right_color = (50,150,255)
@@ -472,7 +458,7 @@ for afile in images:
     # compute and display curvature radius in the image
     left_curverad = round(get_curvature_radius(left_line_x,left_line_y))
     right_curverad = round(get_curvature_radius(right_line_x,right_line_y))
-    print('left_curverad = ',left_curverad, 'm,  right_curverad =', right_curverad, 'm')
+    #print('left_curverad = ',left_curverad, 'm,  right_curverad =', right_curverad, 'm')
     lcurverad_txt = 'left curvature = '+str(round(left_curverad))+' m'
     rcurverad_txt = 'right curvature = '+str(round(right_curverad))+' m'
 #     curverad_txt = 'radius of curvature = '+str(round((left_curverad+right_curverad)/2))+' m'
@@ -480,15 +466,52 @@ for afile in images:
     #cv2.putText(processed_img,curverad_txt,(10,500), font, 1,(255,255,255),2)
     cv2.putText(processed_img,lcurverad_txt, (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255))
     cv2.putText(processed_img,rcurverad_txt, (10,100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255))
-    # show the original and final result
-    plotImageSet([img,masked_channel,lines_img,processed_img])
+    
+    if debug:
+        plotImageSet([img,masked_channel,lines_img,processed_img])
+        
+    return processed_img
+
+
+# In[50]:
+
+# get images list
+images = os.listdir("test_images/")
+
+# images = ["solidYellowLeft.jpg",]
+images = ["test1.jpg"]
+
+
+# In[51]:
+
+# process all images in the list
+for afile in images:
+    # get one image from the list
+    filename = 'test_images/'+afile
+    img = mpimg.imread(filename)
+    processed_img = process_image(img)
     
     # save the processed image to the output folder
     filename = 'processed_images/'+afile
     mpimg.imsave(filename,processed_img)
 
+print('Finished processing all images')
+
+
+# In[1]:
+
+video_output = 'project_video_output.mp4';
+clip1 = VideoFileClip("project_video.mp4");
+video_clip = clip1.fl_image(process_image); #NOTE: this function expects color images!!
+get_ipython().magic('time video_clip.write_videofile(video_output, audio=False);')
+print('Finished processing vide file')
+
 
 # In[ ]:
 
-
+HTML("""
+<video width="960" height="540" controls>
+  <source src="{0}">
+</video>
+""".format(video_output))
 
