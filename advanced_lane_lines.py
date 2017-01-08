@@ -25,7 +25,7 @@
 # 8. Once you have implemented a successful pipeline on the test images, you will run your algorithm on a video. In the case of the video, you must search for the lane lines in the first few frames, and, once you have a high-confidence detection, use that information to track the position and curvature of the lines from frame to frame.
 # 9. Check out the project rubric before you submit to make sure your project is complete!.
 
-# In[1]:
+# In[106]:
 
 # import libs
 get_ipython().magic('matplotlib inline')
@@ -47,7 +47,7 @@ from image_transformation import weighted_img
 
 # # Helper functions
 
-# In[2]:
+# In[107]:
 
 # warp a lane shape from the perspective to the orthogonal view
 # in fact we want to use it to do the inverse transformation
@@ -76,24 +76,24 @@ def warp_lane(img,direction=0):
     return warped_img
 
 
-# In[3]:
+# In[108]:
 
 # check and draw warping area of the image
-def draw_wrap_area(img, src_points):
+def draw_wrap_area(img):
     height, width, channels = img.shape
     src_point_1 = (round(0.22*width),round(0.95*height))
     src_point_2 = (round(width*0.45),round(0.65*height))
     src_point_3 = (round(width*0.58),round(0.65*height))
     src_point_4 = (round(width*0.87), round(0.95*height))
     img_wrap_area = copy.copy(img)
-    cv2.line(img_bound, src_points[1], src_points[2], (100,0,0), thickness=2)
-    cv2.line(img_bound, src_points[2], src_points[3], (100,0,0), thickness=2)
-    cv2.line(img_bound, src_points[3], src_points[4], (100,0,0), thickness=2)
-    cv2.line(img_bound, src_points[4], src_points[1], (100,0,0), thickness=2)
+    cv2.line(img_wrap_area, src_point_1, src_point_2, (100,0,0), thickness=2)
+    cv2.line(img_wrap_area, src_point_2, src_point_3, (100,0,0), thickness=2)
+    cv2.line(img_wrap_area, src_point_3, src_point_4, (100,0,0), thickness=2)
+    cv2.line(img_wrap_area, src_point_4, src_point_1, (100,0,0), thickness=2)
     return img_wrap_area
 
 
-# In[4]:
+# In[109]:
 
 # get list of pixels (x,y coord) for each line:
 def get_pixel_lists(im, left_color, right_color):
@@ -124,7 +124,7 @@ def get_pixel_lists(im, left_color, right_color):
     return left_line_x,left_line_y,right_line_x,right_line_y
 
 
-# In[5]:
+# In[110]:
 
 # fit a 2nd order polynomial to the x and y values
 def fit_polynom(x_values, y_values):
@@ -133,7 +133,7 @@ def fit_polynom(x_values, y_values):
     return pol_fitx,pol_fit
 
 
-# In[6]:
+# In[111]:
 
 # retrieves the curvature radius (in meters) from the set of points
 def get_curvature_radius(x_values,y_values):
@@ -147,7 +147,7 @@ def get_curvature_radius(x_values,y_values):
     return curverad
 
 
-# In[7]:
+# In[112]:
 
 # 6. Warp the detected lane boundaries back onto the original image.
 # computes the output value given the input value and the 2nd order function (coeficients)
@@ -156,38 +156,59 @@ def get_out_value(input, function):
     return output
 
 
-# In[8]:
+# # draw the lane given the edge points of the function
+# def draw_lane(img,left_line_y,left_fit,right_line_y,right_fit):
+# 
+#     left_y_min = np.min(left_line_y)
+#     left_y_max = np.max(left_line_y)
+#     right_y_min = np.min(right_line_y)
+#     right_y_max = np.max(right_line_y)
+# 
+#     point_1 = round(get_out_value(left_y_min,left_fit)),left_y_min
+#     point_2 = round(get_out_value(right_y_min,right_fit)),right_y_min
+#     point_3 = round(get_out_value(right_y_max,right_fit)),right_y_max
+#     point_4 = round(get_out_value(left_y_max,left_fit)),left_y_max
+# 
+#     polygon = np.array([[[round(get_out_value(left_y_min,left_fit)),left_y_min],
+#                         [round(get_out_value(right_y_min,right_fit)),right_y_min],
+#                         [round(get_out_value(right_y_max,right_fit)),right_y_max],
+#                         [round(get_out_value(left_y_max,left_fit)),left_y_max]]], np.int32)
+# 
+#     image_poly = np.zeros_like(img)
+#     cv2.fillPoly(image_poly, polygon, (0,255,0))
+#     inverse_warp = 1
+#     warped_poly = warp_lane(image_poly,direction=1)
+#     return warped_poly
+
+# In[113]:
 
 # draw the lane given the edge points of the function
-def draw_lane(img,left_line_y,left_fit,right_line_y,right_fit):
-
-    left_y_min = np.min(left_line_y)
-    left_y_max = np.max(left_line_y)
-    right_y_min = np.min(right_line_y)
-    right_y_max = np.max(right_line_y)
-
-    point_1 = round(get_out_value(left_y_min,left_fit)),left_y_min
-    point_2 = round(get_out_value(right_y_min,right_fit)),right_y_min
-    point_3 = round(get_out_value(right_y_max,right_fit)),right_y_max
-    point_4 = round(get_out_value(left_y_max,left_fit)),left_y_max
-
-    polygon = np.array([[[round(get_out_value(left_y_min,left_fit)),left_y_min],
-                        [round(get_out_value(right_y_min,right_fit)),right_y_min],
-                        [round(get_out_value(right_y_max,right_fit)),right_y_max],
-                        [round(get_out_value(left_y_max,left_fit)),left_y_max]]], np.int32)
-
-    image_poly = np.zeros_like(img)
-    cv2.fillPoly(image_poly, polygon, (0,255,0))
-    inverse_warp = 1
-    warped_poly = warp_lane(image_poly,direction=1)
-    return warped_poly
+def draw_lane(img,left_fit,right_fit,start_y=0,end_y=0):
+    if end_y==0:
+        end_y = img.shape[2]
+        
+#     image_poly = np.zeros_like(img)
+#     image_poly = copy.copy(img)
+    color = (0,255,0)
+    #draw line from left to right
+    for y_val in range(start_y,end_y-1):
+        pt1 = (int(get_out_value(y_val, left_fit)),y_val)
+        pt2 = (int(get_out_value(y_val, right_fit)),y_val)
+        cv2.line(img,pt1,pt2,color)
+    
+    
+    #cv2.fillPoly(image_poly, polygon, (0,255,0))
+#     inverse_warp = 1
+#     warped_poly = warp_lane(img,direction=1)
+#     return warped_poly
+    return img
 
 
-# In[16]:
+# In[114]:
 
 # 4. Detect lane pixels in birds-eye image
 # note img_channel should have values ranging from 0 to 255
-def identify_lines(img_channel, left_color, right_color):
+def identify_lines(img_channel, left_color, right_color, debug=0):
     thres = 0.5 # threshold to validate line pixels
     original_height, original_width = img_channel.shape
     
@@ -202,46 +223,46 @@ def identify_lines(img_channel, left_color, right_color):
     line_img = copy.copy(img_channel)
     left_mask = np.zeros_like(img_channel)
     right_mask = np.zeros_like(img_channel)
-
+    
     for i in range(5):
 
         img_fraction = img_channel[(original_height-step_height*(i+1)):(original_height-step_height*(i)),
                                    0:original_width]
         height, width = img_fraction.shape
 
-        x1=(left_search_point-left_amplitude)
-        x2=(left_search_point+left_amplitude)
-        y1=(original_height-step_height*(i+1))
-        y2=(original_height-step_height*(i))    
+        lx1=(left_search_point-left_amplitude)
+        lx2=(left_search_point+left_amplitude)
+        ly1=(original_height-step_height*(i+1))
+        ly2=(original_height-step_height*(i))    
 
         # validate x1, x2
-        x1 = max(x1,0)
-        x1 = min(x1,original_width)
-        x2 = max(x2,0)
-        x2 = min(x2,original_width)
+        lx1 = max(lx1,0)
+        lx1 = min(lx1,original_width)
+        lx2 = max(lx2,0)
+        lx2 = min(lx2,original_width)
         
-        region_left  = img_fraction[0:height,x1:x2]
+        region_left  = img_fraction[0:height,lx1:lx2]
         
         #(img, (x1, y1), (x2, y2), color, thickness)
-        cv2.rectangle(line_img, (x1, y1), (x2, y2), (255,255,0), 2)
-        left_peak_x = x1 + get_peak(region_left,thres)
+        cv2.rectangle(line_img, (lx1, ly1), (lx2, ly2), (255,255,0), 2)
+        left_peak_x = lx1 + get_peak(region_left,thres)
 
-        x1=(right_search_point-right_amplitude)
-        x2=(right_search_point+right_amplitude)
-        y1=(original_height-step_height*(i+1))
-        y2=(original_height-step_height*(i))
+        rx1=(right_search_point-right_amplitude)
+        rx2=(right_search_point+right_amplitude)
+        ry1=(original_height-step_height*(i+1))
+        ry2=(original_height-step_height*(i))
 
         # validate x1, x2
-        x1 = max(x1,0)
-        x1 = min(x1,original_width)
-        x2 = max(x2,0)
-        x2 = min(x2,original_width)
+        rx1 = max(rx1,0)
+        rx1 = min(rx1,original_width)
+        rx2 = max(rx2,0)
+        rx2 = min(rx2,original_width)
         
-        region_right = img_fraction[0:height,x1:x2]
+        region_right = img_fraction[0:height,rx1:rx2]
         
         
-        cv2.rectangle(line_img, (x1, y1), (x2, y2), (255,255,0), 2)
-        right_peak_x = x1 + get_peak(region_right,thres)
+        cv2.rectangle(line_img, (rx1, ry1), (rx2, ry2), (255,255,0), 2)
+        right_peak_x = rx1 + get_peak(region_right,thres)
 
         left_search_point = left_peak_x
         right_search_point = right_peak_x
@@ -249,27 +270,41 @@ def identify_lines(img_channel, left_color, right_color):
         right_amplitude = 100
 
         #color pixels on the left and on the right
-
-        left_mask[(original_height-step_height*(i+1)):(original_height-step_height*(i)),
-                 (left_search_point-left_amplitude):(left_search_point+left_amplitude)] = 1
-        right_mask[(original_height-step_height*(i+1)):(original_height-step_height*(i)),
-                 (right_search_point-right_amplitude):(right_search_point+right_amplitude)] = 1
+        left_mask[(original_height-step_height*(i+1)):(original_height-step_height*(i)),lx1:lx2] = 1
+        right_mask[(original_height-step_height*(i+1)):(original_height-step_height*(i)),rx1:rx2] = 1
         
+        if debug:
+            plt.imshow(line_img,'gray')
+            plt.show()
 
     r_channel = copy.copy(img_channel)
     g_channel = copy.copy(img_channel)
     b_channel = copy.copy(img_channel)
     im = np.dstack((r_channel, g_channel, b_channel))
-
-    #im = weighted_img(line_img,warped_img) 
+    
     im[(img_channel >= 0.5) & (left_mask >= 0.5)] = left_color
     im[(img_channel >= 0.5) & (right_mask >= 0.5)] = right_color
-    
-    #plotImageSet([img_channel,line_img,im,])
     return im
 
 
-# In[10]:
+# In[115]:
+
+def draw_line(img,fit_func,color=(255,255,255), thickness=24):
+    height, width, channels = img.shape
+    pixels = []
+    # get the pixels to color
+    for y_val in range(height):
+        x_val = get_out_value(y_val,fit_func)
+        pixels.append([y_val,x_val])
+    # color the pixels
+    for pixel in pixels:
+        for i in range(thickness):
+            img[pixel[0]][int(pixel[1]-thickness/2+i)]=color
+        
+    return img
+
+
+# In[116]:
 
 def plot_fit_lines(left_line_x, left_line_y, right_line_x, right_line_y, left_fitx, right_fitx):
     plt.plot(left_line_x, left_line_y, 'o', color='red')
@@ -283,7 +318,7 @@ def plot_fit_lines(left_line_x, left_line_y, right_line_x, right_line_y, left_fi
 
 # # Camera Calibration
 
-# In[11]:
+# In[117]:
 
 # 0. Calibrate the camera using the calibration images
 nx = 9 # number of inside corners in x
@@ -299,7 +334,7 @@ mtx,dist = calibrate_camera('camera_cal/calibration*.jpg',nx, ny)
 # undistorted_im = cv2.undistort(img, mtx, dist, None, mtx)
 # plotImageSet([img,undistorted_im]);
 
-# In[12]:
+# In[118]:
 
 # 2. Use color transforms, gradients, etc., to create a thresholded binary image.
 
@@ -315,12 +350,12 @@ mtx,dist = calibrate_camera('camera_cal/calibration*.jpg',nx, ny)
 # dir_binary = dir_threshold(undistorted_im, sobel_kernel=15, thresh=(0.93, 1.04))
 # plotImageSet([undistorted_im,dir_binary])
 
-# In[17]:
+# In[128]:
 
 
 # Pipeline.
 # def pipeline(img, s_thresh=(170, 255), sx_thresh=(20, 100), r_thresh=(20, 100), h_thresh=(20, 100)):
-def pipeline(img, h_thresh=(20,22), s_thresh=(200, 254), sx_thresh=(20, 100),r_thresh=(220, 255)):
+def pipeline(img, h_thresh=(20,22), s_thresh=(200, 254), sx_thresh=(40, 100),r_thresh=(220, 255)):
     
     img = np.copy(img)
     r_channel = img[:,:,0]
@@ -363,23 +398,24 @@ def pipeline(img, h_thresh=(20,22), s_thresh=(200, 254), sx_thresh=(20, 100),r_t
     # debug
     # h_binary captures yellow lines very well
     # sxbinary captures white lines
-    # s_binary captures white and yellow lines
-#     plotImageSet([img,h_binary,sxbinary,s_binary,r_binary,filtered_channel])
+    # s_binary captures white and yellow lines     
+    plotImageSet([img,h_binary,sxbinary,s_binary,r_binary,filtered_channel])
 #     plotImageSet([img,img_lines])
     
     #return color_binary
     return filtered_channel
 
 
-# In[19]:
+# In[142]:
 
 # get images list
 images = os.listdir("test_images/")
 
 # images = ["solidYellowLeft.jpg",]
+# images = ["test1.jpg"]
 
 
-# In[20]:
+# In[144]:
 
 # process all images in the list
 for afile in images:
@@ -403,8 +439,7 @@ for afile in images:
 
     # warp the image to 'orthogonal bird-eyes view'
     warped_channel = warp_lane(masked_channel)
-    # wrap_area = draw_wrap_area(undistorted_im) # just for debug
-    # plotImageSet([undistorted_im,wrap_area])
+    wrap_area = draw_wrap_area(undistorted_im) # just for debug
     
 #     plotImageSet([warped_channel,])
     # identify lines in image
@@ -420,26 +455,33 @@ for afile in images:
     right_fitx,right_fit = fit_polynom(right_line_x, right_line_y)
     #plot_fit_lines(left_line_x, left_line_y, right_line_x, right_line_y, left_fitx, right_fitx)
     
-    # compute and display curvature radius in the image
-    left_curverad = get_curvature_radius(left_line_x,left_line_y)
-    right_curverad = get_curvature_radius(right_line_x,right_line_y)
-    print('left_curverad = ',left_curverad, 'm,  right_curverad =', right_curverad, 'm')
+    fit_lines_img = np.zeros_like(lines_img)
+    fit_lines_img = draw_lane(fit_lines_img,left_fit,right_fit,start_y=0,end_y=height)#round(height/5)
+    fit_lines_img = draw_line(fit_lines_img,left_fit,left_color)
+    fit_lines_img = draw_line(fit_lines_img,right_fit,right_color)
+    
+    # warp image back
+    warped_poly = warp_lane(fit_lines_img,direction=1)
 
     # 5. Determine the vehicle position with respect to center.
     #ToDo
     
-    # draw left and right lines 
-    #ToDo
-    
-    # draw lane
-    warped_poly = draw_lane(lines_img,left_line_y,left_fit,right_line_y,right_fit)
-    #plotImageSet([img,warped_poly])
-
     # 7. Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position.
-    processed_img = weighted_img(img,warped_poly);
+    processed_img = weighted_img(warped_poly,img,0.5);
     
+    # compute and display curvature radius in the image
+    left_curverad = round(get_curvature_radius(left_line_x,left_line_y))
+    right_curverad = round(get_curvature_radius(right_line_x,right_line_y))
+    print('left_curverad = ',left_curverad, 'm,  right_curverad =', right_curverad, 'm')
+    lcurverad_txt = 'left curvature = '+str(round(left_curverad))+' m'
+    rcurverad_txt = 'right curvature = '+str(round(right_curverad))+' m'
+#     curverad_txt = 'radius of curvature = '+str(round((left_curverad+right_curverad)/2))+' m'
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    #cv2.putText(processed_img,curverad_txt,(10,500), font, 1,(255,255,255),2)
+    cv2.putText(processed_img,lcurverad_txt, (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255))
+    cv2.putText(processed_img,rcurverad_txt, (10,100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255))
     # show the original and final result
-    plotImageSet([img,masked_channel,warped_channel,processed_img])
+    plotImageSet([img,masked_channel,lines_img,processed_img])
     
     # save the processed image to the output folder
     filename = 'processed_images/'+afile

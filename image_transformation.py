@@ -124,7 +124,7 @@ def extend_line(line, lower_x,upper_x,lower_y,upper_y):
     return {'line':extended_line,'slope':slope}
 
 
-# In[13]:
+# In[1]:
 
 # warps and image given src and dst points
 
@@ -146,7 +146,7 @@ def warp(img, src, dst, back=0):
     M_inv = cv2.getPerspectiveTransform(dst,src)
     
     if back:
-        print('warping back')
+#         print('warping back')
         #warped = cv2.warpPerspective(img, M_inv, img_size, flags=cv2.INTER_LINEAR) #CV_WARP_FILL_OUTLIERS
         warped = cv2.warpPerspective(img, M_inv, img_size, flags=cv2.INTER_NEAREST)#INTER_MAX INTER_NEAREST #CV_WARP_FILL_OUTLIERS
     else:
