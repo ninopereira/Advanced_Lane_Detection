@@ -427,14 +427,16 @@ def get_histogram (img_channel,threshold):
     return x,hist
 
 
-# In[2]:
+# In[4]:
 
 # get the peak of the histogram for a given image channel and given a threshold
-def get_peak(img_channel,threshold):
+def get_peak(img_channel,threshold=0.5,min_pixels=1):
     # use that region to search for the line in the next section of the image
     x,y = get_histogram(img_channel,threshold)
     # find peaks
     peak_x = y.index(max(y)) #get the x coordinate for the peak on the left
+    if max(y) < min_pixels:
+        peak_x = int(img_channel.shape[1]/2)
     return peak_x
 
 
