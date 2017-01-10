@@ -185,7 +185,7 @@ def gaussian_blur(img, kernel_size):
 # In[17]:
 
 # crop image to a given region of interes defined by the vertices
-def region_of_interest(img, vertices):
+def region_of_interest(img, vertices, color_max_value = 255):
     """
     Applies an image mask.
     
@@ -198,9 +198,9 @@ def region_of_interest(img, vertices):
     #defining a 3 channel or 1 channel color to fill the mask with depending on the input image
     if len(img.shape) > 2:
         channel_count = img.shape[2]  # i.e. 3 or 4 depending on your image
-        ignore_mask_color = (255,) * channel_count
+        ignore_mask_color = (color_max_value,) * channel_count
     else:
-        ignore_mask_color = 255
+        ignore_mask_color = color_max_value
         
     #filling pixels inside the polygon defined by "vertices" with the fill color    
     cv2.fillPoly(mask, vertices, ignore_mask_color)
@@ -331,7 +331,8 @@ def hough_lines(img, rho, theta, threshold, min_line_len, max_line_gap):
 # In[27]:
 
 # returns a weighted image between the two given images 
-def weighted_img(img, initial_img, α=0.8, β=1., λ=0.):
+# note (α + β) <= 1.0, if greater results are incorrect
+def weighted_img(img, initial_img, α=0.8, β=0.2, λ=0.):
     """
     The result image is computed as follows:
     
