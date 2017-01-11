@@ -93,7 +93,7 @@ In one case or the other the subsequent 10 steps are the same: we search for the
 | --- | --- | --- | --- | --- |  
 | <img src="report_img/id_lines_5.png" width="150"/> | <img src="report_img/id_lines_6.png" width="150"/> | <img src="report_img/id_lines_7.png" width="150"/> | <img src="report_img/id_lines_8.png" width="150"/> | <img src="report_img/id_lines_9.png" width="150"/> | 
 
-If another picture following the previous one is to be searched for lines, we can use the knowledge to narrow down the search into a smaller region (**Posterior lower searches**).
+If another image in the video sequence following the previous one is to be searched for lines, we can use the previous knowledge about the location of the initial peaks to narrow down the search into a smaller region (**Posterior lower searches**) starting already at that location and with a narrower amplitude.
 
 | Posterior lower searches |
 | --- |
@@ -101,7 +101,7 @@ If another picture following the previous one is to be searched for lines, we ca
 
 From here the process goes on as before.
 
-#### Step 6 Get the pixels lists and fit polynomials to left and right lines
+#### Step 6: Get the pixels lists and fit polynomials to left and right lines
 
 After detecting and marking all the pixels for the left and right lines, we fit a polynomial to each of them and then use the polynomials to draw the lines and color in green the area in between. After that this image is warped back using the inverse transformation used before when converting to the birds eye view, this time, the function outputs a warped image in perpective view.
 
@@ -109,51 +109,73 @@ After detecting and marking all the pixels for the left and right lines, we fit 
 | --- | --- | --- |
 | <img src="report_img/lines_img.png" width="200"/> | <img src="report_img/fit_lines_img.png" width="200"/> |  <img src="report_img/warped_poly.png" width="200"/> | 
  
-#### Step 7 Superimposing the detected lines in the original undistorted image
+#### Step 7: Superimpose the detected lines in the original undistorted image
 
 This step is just the superimposition of the detected lines and lane with the original undistorted image.
 
 | undistorted img | processed image |
 | --- | --- | 
-| <img src="report_img/img.png" width="200"/> | <img src="report_img/processed_image.png" width="200"/> |  
+| <img src="report_img/original_img.png" width="300"/> | <img src="report_img/processed_img.png" width="300"/> |  
 
-#### Step 8 Calculation radius of curvature and position of the vehicle
+#### Step 8: Calculate the radius of curvature and position of the vehicle
 
 Using the polinomials for each line we calculated the radius of curvature for each line independently. If the difference between both radiuses is less than 30% (empirical value), then we average them and output as lane curvature. If they disagree in more than 30%, then we just print both in the output panel.
+The curvatures are displayed in meters.
 
-The position of the car with respect to the center of the lane is calculated and displayed in the final processed and anotated image (mid-lane distance)
+The position of the car with respect to the center of the lane is calculated and displayed in the final processed and anotated image (mid-lane distance). The position is displayed in meters off the center.
+
+| curvature of the lane | curvature of each line |
+| --- | --- | 
+| <img src="report_img/curvature_lane.png" width="400"/> | <img src="report_img/curvature_lines.png" width="400"/> |  
+
+By visual inspection we can see that the lane was correctly identified in this image using the proposed pipeline.  
 
 
+### Pipeline (video)  
+
+The pipeline described above was used to process a sequence of images from a video file.
+The video for the project is properly annotated. The output video correctly identifies and displays the lanes correctly across all the images in the video.
+The pipeline correctly maps out curved lines and doesn't fail when shadows or pavement color changes are present.
+
+#### Discover the position of the lines in the first images in the video stream  
+
+To take advantage of the continued streaming of images from the camera, we should take into consideration the location of detected lines in the previous image and use that information to narrow down the search for lines in the next image of the sequence (see 'Posterior lower searches' in step 5 of the pipeline). This way, we not only speed up the process of detection but we also avoid erroneous detection of unwanted elements that might be in other locations of the image.
+
+In order to do that properly it was implemented a mechanism to allow for a given number of lines to be detected properly and only when the detection is stable, the process of narrowing down the search begins.
+The implementation is basically just a filter using a weighted average of the previous detections with the current one.
+You can find the related variables in the code:  
+
+```
+process_image.left_sp_avg
+process_image.right_sp_avg
+process_image.count
+```
+#### Binary image enhancement from consecutive frames  
+
+Moving one step furthe in taking advantage of the continued streaming of images, two consecutive filtered images were merged in order to produce a more robust detection of the lines. As it can be seen below the previous filtered image is merged with the current one to give a slightly better binary image for processing. This way it smoothes out some filtering imperfections and also diminishes the probality of detecting other strange objects in the image as lines.
+
+| previous filtered image | current filtered image | merged image |
+| --- | --- | --- |
+| <img src="report_img/previous.png" width="200"/> | <img src="report_img/next.png" width="200"/> | <img src="report_img/merged.png" width="200"/> |  
 
 
-Having identified the lane lines, has the radius of curvature of the road been estimated? And the position of the vehicle with respect to center in the lane?
+## Further Work
 
-Here the idea is to take the measurements of where the lane lines are and estimate how much the road is curving and where the vehicle is located with respect to the center of the lane. The radius of curvature may be given in meters assuming the curve of the road follows a circle and the position of the vehicle within the lane may be given as meters off of center.
+A successful implementation of computer vision methods allows for a smooth and consistent lane detection on the project video file. The pipeline has some robustness and was designed to minimise the chances of misdetection in the particular test images and project video files provided.
+As such, it is foreseable that using this pipeline without further refinement would not suit all other input images we can provide it (e.g. the challenge video files). Other methods would have to be added in order to improve robustness and broader scope to the current implementation. 
 
-Has the result from lane line detection been warped back to the original image space and displayed?
+### Challenging scenarios  
 
-The fit from the rectified image has been warped back onto the original image and plotted to identify the lane boundaries. This should demonstrate that the lane boundaries were correctly identified.
+Some challenging scenarios would be for example:
+- changing lighting conditions
+- sudden appearance of other objects (e.g. cars) in the image
+- absence of lines in one or the other side
+- car changing lanes
 
-Pipeline (video)
+### Suggestions for improvements  
 
-CRITERIA
-MEETS SPECIFICATIONS
-Does the pipeline established with the test images work to process the video?
-
-The image processing pipeline that was established to find the lane lines in images successfully processes the video. The output here should be a new video where the lanes are identified in every frame, and outputs are generated regarding the radius of curvature of the lane and vehicle position within the lane. The identification and estimation don't need to be perfect, but they should not be wildly off in any case. The pipeline should correctly map out curved lines and not fail when shadows or pavement color changes are present.
-
-Has some kind of search method been implemented to discover the position of the lines in the first images in the video stream?
-
-In the first few frames of video, the algorithm should perform a search without prior assumptions about where the lines are (i.e., no hard coded values to start with). Once a high-confidence detection is achieved, that positional knowledge may be used in future iterations as a starting point to find the lines.
-
-Has some form of tracking of the position of the lane lines been implemented?
-
-As soon as a high confidence detection of the lane lines has been achieved, that information should be propagated to the detection step for the next frame of the video, both as a means of saving time on detection and in order to reject outliers (anomalous detections).
-
-Readme
-
-CRITERIA
-MEETS SPECIFICATIONS
-Has a Readme file been included that describes in detail the steps taken to construct the pipeline, techniques used, areas where improvements could be made?
-
-The Readme file submitted with this project includes a detailed description of what steps were taken to achieve the result, what techniques were used to arrive at a successful result, what could be improved about their algorithm/pipeline, and what hypothetical cases would cause their pipeline to fail.
+One could mitigate some of the problems by further improving the pipeline:
+- Create a robust filter which takes into account the past images of the video file
+- Detect other objects in the image that might be obstructing the lines.
+- Bound the ratio of curvature to admissible values and use that to detect a failure case
+- Use the speed and direction of the vehicle in conjunction with the sequence of images to predict the location of line pixels the next frame taking into account the current and previous locations.
