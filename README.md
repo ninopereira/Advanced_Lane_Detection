@@ -156,7 +156,9 @@ Moving one step furthe in taking advantage of the continued streaming of images,
 
 | previous filtered image | current filtered image | merged image |
 | --- | --- | --- |
-| <img src="report_img/previous.png" width="200"/> | <img src="report_img/next.png" width="200"/> | <img src="report_img/merged.png" width="200"/> |  
+| <img src="report_img/previous.png" width="300"/> | <img src="report_img/next.png" width="300"/> | <img src="report_img/merged.png" width="300"/> |  
+
+As it can be seen, the image on the right (merged image) has longer lines, hence it is less prone to failures.
 
 
 ## Further Work
