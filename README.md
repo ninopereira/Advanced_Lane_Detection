@@ -76,7 +76,14 @@ An orthogonal 'birds eye view' of the road enables us to better distinguish the 
 
 #### Step 5: Identify lines in image
 
-When searching for lines in a filtered image we first search the first lower half of the image by splitting it further into left and right. The first detection id_lines_0
+When searching for lines in a filtered image we first search the first lower half of the image by splitting it further into left and right. The first detection (**Initial lower search**) searches for left and right line independently, expecting to find them respectively in the left and right parts of the image.
+If another picture following the previous one is to be searched for lines, we can use the knowledge to narrow down the search into a smaller region (**Posterior lower searches**).
+
+| Initial lower search | Posterior lower searches |
+| --- | --- |
+| <img src="report_img/id_lines_00.png" width="200"/> | <img src="report_img/id_lines_0.png" width="200"/> |
+
+In one case or the other the subsequent steps are the same: we search for the next segment of the line starting from the 
 
 | id_lines_0 | id_lines_1 | id_lines_2 | id_lines_3 | id_lines_4 |
 | --- | --- | --- | --- | --- |
