@@ -77,24 +77,54 @@ An orthogonal 'birds eye view' of the road enables us to better distinguish the 
 #### Step 5: Identify lines in image
 
 When searching for lines in a filtered image we first search the first lower half of the image by splitting it further into left and right. The first detection (**Initial lower search**) searches for left and right line independently, expecting to find them respectively in the left and right parts of the image.
+
+| Initial lower search | 
+| --- | 
+| <img src="report_img/id_lines_00.png" width="400"/> |
+| <img src="report_img/left_hist.png" width="200"/> <img src="report_img/right_hist.png" width="200"/> |
+
+In one case or the other the subsequent 10 steps are the same: we search for the next segment of the line starting from the x location in the image where the previous histogram peak was found and move upwards one step at a time, marking all pixels found inside the search area (marked as rectangles in the pictures below). 
+
+
+| 1 | 2 | 3 | 4 | 5 |  
+| --- | --- | --- | --- | --- |  
+| <img src="report_img/id_lines_0.png" width="150"/> | <img src="report_img/id_lines_1.png" width="150"/> | <img src="report_img/id_lines_2.png" width="150"/> | <img src="report_img/id_lines_3.png" width="150"/> | <img src="report_img/id_lines_4.png" width="150"/> |  
+| 6 | 7 | 8 | 9 | 10 |  
+| --- | --- | --- | --- | --- |  
+| <img src="report_img/id_lines_5.png" width="150"/> | <img src="report_img/id_lines_6.png" width="150"/> | <img src="report_img/id_lines_7.png" width="150"/> | <img src="report_img/id_lines_8.png" width="150"/> | <img src="report_img/id_lines_9.png" width="150"/> | 
+
 If another picture following the previous one is to be searched for lines, we can use the knowledge to narrow down the search into a smaller region (**Posterior lower searches**).
 
-| Initial lower search | Posterior lower searches |
-| --- | --- |
-| <img src="report_img/id_lines_00.png" width="200"/> | <img src="report_img/id_lines_0.png" width="200"/> |
+| Posterior lower searches |
+| --- |
+| <img src="report_img/id_lines_0.png" width="300"/> |
 
-In one case or the other the subsequent steps are the same: we search for the next segment of the line starting from the 
+From here the process goes on as before.
 
-| id_lines_0 | id_lines_1 | id_lines_2 | id_lines_3 | id_lines_4 |
-| --- | --- | --- | --- | --- |
-| <img src="report_img/id_lines_0.png" width="100"/> | <img src="report_img/id_lines_1.png" width="100"/> | | <img src="report_img/id_lines_2.png" width="100"/> | <img src="report_img/id_lines_3.png" width="100"/> | | <img src="report_img/id_lines_4.png" width="100"/> | 
-| id_lines_5 | id_lines_6 | id_lines_7 | id_lines_8 | id_lines_9 |
- | --- | --- | --- | --- | --- |
-| <img src="report_img/id_lines_5.png" width="100"/> | | <img src="report_img/id_lines_6.png" width="100"/> | | <img src="report_img/id_lines_7.png" width="100"/> | | <img src="report_img/id_lines_8.png" width="100"/> | <img src="report_img/id_lines_9.png" width="100"/> | 
+#### Step 6 Get the pixels lists and fit polynomials to left and right lines
 
-Have lane line pixels been identified in the rectified image and fit with a polynomial?
+After detecting and marking all the pixels for the left and right lines, we fit a polynomial to each of them and then use the polynomials to draw the lines and color in green the area in between. After that this image is warped back using the inverse transformation used before when converting to the birds eye view, this time, the function outputs a warped image in perpective view.
 
-Methods have been used to identify lane line pixels in the rectified binary image. The left and right line have been identified and fit with a curved functional form (e.g., spine or polynomial).
+| left and right pixels marked | polynomial fitted lines |  warped back img |
+| --- | --- | --- |
+| <img src="report_img/lines_img.png" width="200"/> | <img src="report_img/fit_lines_img.png" width="200"/> |  <img src="report_img/warped_poly.png" width="200"/> | 
+ 
+#### Step 7 Superimposing the detected lines in the original undistorted image
+
+This step is just the superimposition of the detected lines and lane with the original undistorted image.
+
+| undistorted img | processed image |
+| --- | --- | 
+| <img src="report_img/img.png" width="200"/> | <img src="report_img/processed_image.png" width="200"/> |  
+
+#### Step 8 Calculation radius of curvature and position of the vehicle
+
+Using the polinomials for each line we calculated the radius of curvature for each line independently. If the difference between both radiuses is less than 30% (empirical value), then we average them and output as lane curvature. If they disagree in more than 30%, then we just print both in the output panel.
+
+The position of the car with respect to the center of the lane is calculated and displayed in the final processed and anotated image (mid-lane distance)
+
+
+
 
 Having identified the lane lines, has the radius of curvature of the road been estimated? And the position of the vehicle with respect to center in the lane?
 
