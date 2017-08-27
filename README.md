@@ -1,5 +1,8 @@
 # advanced_lane_lines
 
+[Sample](report_img/merged.png)
+
+
 ## Problem
 
 The goal is to write a software pipeline to identify the lane boundaries in video from a front-facing camera on a car. The camera calibration images, test road images, and videos were given a priori.
@@ -136,6 +139,9 @@ By visual inspection we can see that the lane was correctly identified in this i
 The pipeline described above was used to process a sequence of images from a video file.
 The video for the project is properly annotated. The output video correctly identifies and displays the lanes correctly across all the images in the video.
 The pipeline correctly maps out curved lines and doesn't fail when shadows or pavement color changes are present.
+
+Result
+[Video output](https://youtu.be/_5ln3s9YjC8)
 
 #### Discover the position of the lines in the first images in the video stream  
 
