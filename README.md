@@ -1,4 +1,4 @@
-# advanced_lane_lines
+# Advanced Lane Detection
 
 ![Sample](report_img/curvature_lane.png)
 
