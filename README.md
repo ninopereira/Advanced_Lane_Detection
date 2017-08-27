@@ -1,6 +1,6 @@
 # advanced_lane_lines
 
-[Sample](report_img/merged.png)
+![Sample](report_img/curvature_lane.png)
 
 
 ## Problem
